@@ -15,7 +15,12 @@ const createInitialSaveData = (): SaveData => ({
     musicEnabled: true,
     volume: 0.7,
     difficulty: 'normal'
-  }
+  },
+  totalScore: 0,
+  bestKillStreak: 0,
+  shotsFired: 0,
+  shotsHit: 0,
+  healthPickupsCollected: 0
 });
 
 interface ProgressStore {
@@ -29,6 +34,11 @@ interface ProgressStore {
   loadSavedData: () => Promise<void>;
   saveProgress: () => Promise<void>;
   resetProgress: () => void;
+  addScore: (score: number) => void;
+  updateBestKillStreak: (streak: number) => void;
+  incrementShotsFired: () => void;
+  incrementShotsHit: () => void;
+  incrementHealthPickups: () => void;
 }
 
 export const useProgressStore = create<ProgressStore>((set, get) => ({
@@ -105,5 +115,50 @@ export const useProgressStore = create<ProgressStore>((set, get) => ({
     const newData = createInitialSaveData();
     set({ saveData: newData });
     storageService.saveGame(newData);
+  },
+
+  addScore: (score: number) => {
+    set((state) => ({
+      saveData: {
+        ...state.saveData,
+        totalScore: state.saveData.totalScore + score
+      }
+    }));
+  },
+
+  updateBestKillStreak: (streak: number) => {
+    set((state) => ({
+      saveData: {
+        ...state.saveData,
+        bestKillStreak: Math.max(state.saveData.bestKillStreak, streak)
+      }
+    }));
+  },
+
+  incrementShotsFired: () => {
+    set((state) => ({
+      saveData: {
+        ...state.saveData,
+        shotsFired: state.saveData.shotsFired + 1
+      }
+    }));
+  },
+
+  incrementShotsHit: () => {
+    set((state) => ({
+      saveData: {
+        ...state.saveData,
+        shotsHit: state.saveData.shotsHit + 1
+      }
+    }));
+  },
+
+  incrementHealthPickups: () => {
+    set((state) => ({
+      saveData: {
+        ...state.saveData,
+        healthPickupsCollected: state.saveData.healthPickupsCollected + 1
+      }
+    }));
   }
 }));

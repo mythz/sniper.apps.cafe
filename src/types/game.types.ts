@@ -30,6 +30,7 @@ export interface Kidnapper extends Entity {
   shootCooldown: number;
   lastShotTime: number;
   targetPosition: Vector2D | null;
+  type: 'normal' | 'scout' | 'heavy';
 }
 
 export interface Hostage extends Entity {
@@ -56,12 +57,29 @@ export interface SpawnZone {
   type: 'player' | 'kidnapper';
 }
 
+export interface HealthPickup extends Entity {
+  amount: number;
+  collected: boolean;
+}
+
+export interface Particle {
+  id: string;
+  position: Vector2D;
+  velocity: Vector2D;
+  color: string;
+  size: number;
+  life: number;
+  maxLife: number;
+  alpha: number;
+}
+
 export interface RooftopLayout {
   width: number;
   height: number;
   obstacles: Obstacle[];
   spawnZones: SpawnZone[];
   hostagePosition: Vector2D;
+  healthPickups: HealthPickup[];
 }
 
 export interface LevelConfig {
@@ -77,11 +95,18 @@ export interface GameState {
   kidnappers: Kidnapper[];
   hostages: Hostage[];
   bullets: Bullet[];
+  healthPickups: HealthPickup[];
+  particles: Particle[];
   gameStatus: 'menu' | 'playing' | 'paused' | 'levelComplete' | 'gameOver';
   score: number;
   killCount: number;
   totalKills: number;
   levelConfig: LevelConfig | null;
+  killStreak: number;
+  lastKillTime: number;
+  scoreMultiplier: number;
+  cameraShake: number;
+  showTutorial: boolean;
 }
 
 export interface GameSettings {
@@ -98,6 +123,11 @@ export interface SaveData {
   totalDeaths: number;
   playTime: number;
   settings: GameSettings;
+  totalScore: number;
+  bestKillStreak: number;
+  shotsFired: number;
+  shotsHit: number;
+  healthPickupsCollected: number;
 }
 
 export interface LevelStats {

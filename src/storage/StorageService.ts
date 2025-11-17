@@ -26,7 +26,12 @@ export class StorageService {
       totalKills: gameState.totalKills,
       totalDeaths: 0, // This should be tracked elsewhere
       playTime: 0, // This should be tracked elsewhere
-      settings: this.loadSettings()
+      settings: this.loadSettings(),
+      totalScore: gameState.score,
+      bestKillStreak: gameState.killStreak,
+      shotsFired: 0, // This should be tracked elsewhere
+      shotsHit: 0, // This should be tracked elsewhere
+      healthPickupsCollected: 0 // This should be tracked elsewhere
     };
 
     await this.idb.saveProgress(saveData);

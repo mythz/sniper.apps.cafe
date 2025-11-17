@@ -1,4 +1,4 @@
-import { LevelConfig, RooftopLayout, Obstacle, SpawnZone, Vector2D } from '../types/game.types';
+import { LevelConfig, RooftopLayout, Obstacle, SpawnZone, Vector2D, HealthPickup } from '../types/game.types';
 
 export class LevelGenerator {
   generateLevel(levelNumber: number): LevelConfig {
@@ -36,12 +36,16 @@ export class LevelGenerator {
     // Place hostage in a safe location
     const hostagePosition = this.findSafePosition(width, height, obstacles, spawnZones);
 
+    // Generate health pickups (more on harder levels)
+    const healthPickups = this.generateHealthPickups(width, height, obstacles, spawnZones, difficulty);
+
     return {
       width,
       height,
       obstacles,
       spawnZones,
-      hostagePosition
+      hostagePosition,
+      healthPickups
     };
   }
 
@@ -207,5 +211,64 @@ export class LevelGenerator {
     }
 
     return positions;
+  }
+
+  private generateHealthPickups(
+    width: number,
+    height: number,
+    obstacles: Obstacle[],
+    spawnZones: SpawnZone[],
+    difficulty: number
+  ): HealthPickup[] {
+    const pickups: HealthPickup[] = [];
+    const wallPadding = 100;
+
+    // More pickups on harder levels (1-3 pickups)
+    const pickupCount = Math.min(3, 1 + Math.floor(difficulty / 2));
+
+    for (let i = 0; i < pickupCount; i++) {
+      let attempts = 0;
+      while (attempts < 30) {
+        const position: Vector2D = {
+          x: wallPadding + Math.random() * (width - wallPadding * 2),
+          y: wallPadding + Math.random() * (height - wallPadding * 2)
+        };
+
+        // Check distance from spawn zones
+        const farEnoughFromSpawns = spawnZones.every(zone => {
+          const dist = Math.sqrt(
+            Math.pow(position.x - zone.position.x, 2) +
+            Math.pow(position.y - zone.position.y, 2)
+          );
+          return dist > 200;
+        });
+
+        // Check distance from obstacles
+        const notInObstacle = !obstacles.some(obs => {
+          return (
+            position.x >= obs.position.x &&
+            position.x <= obs.position.x + obs.width &&
+            position.y >= obs.position.y &&
+            position.y <= obs.position.y + obs.height
+          );
+        });
+
+        if (farEnoughFromSpawns && notInObstacle) {
+          pickups.push({
+            id: `health-${i}`,
+            position,
+            velocity: { x: 0, y: 0 },
+            rotation: 0,
+            radius: 15,
+            amount: 30, // Restores 30 HP
+            collected: false
+          });
+          break;
+        }
+        attempts++;
+      }
+    }
+
+    return pickups;
   }
 }

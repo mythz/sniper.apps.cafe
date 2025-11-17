@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GameState, Player, Kidnapper, Bullet } from '../types/game.types';
+import { GameState, Player, Kidnapper, Bullet, Particle, HealthPickup } from '../types/game.types';
 import { LevelGenerator } from '../utils/LevelGenerator';
 
 const levelGenerator = new LevelGenerator();
@@ -23,11 +23,18 @@ const createInitialState = (): GameState => ({
   kidnappers: [],
   hostages: [],
   bullets: [],
+  healthPickups: [],
+  particles: [],
   gameStatus: 'menu',
   score: 0,
   killCount: 0,
   totalKills: 0,
-  levelConfig: null
+  levelConfig: null,
+  killStreak: 0,
+  lastKillTime: 0,
+  scoreMultiplier: 1,
+  cameraShake: 0,
+  showTutorial: false
 });
 
 interface GameStore {
@@ -49,6 +56,14 @@ interface GameStore {
   resumeGame: () => void;
   resetLevel: () => void;
   returnToMenu: () => void;
+  addParticles: (particles: Particle[]) => void;
+  updateParticles: (particles: Particle[]) => void;
+  updateHealthPickups: (pickups: HealthPickup[]) => void;
+  collectHealthPickup: (pickupId: string) => void;
+  setCameraShake: (amount: number) => void;
+  updateKillStreak: () => void;
+  resetKillStreak: () => void;
+  dismissTutorial: () => void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -74,6 +89,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     for (let i = 0; i < levelConfig.kidnapperCount; i++) {
       const spawn = kidnapperSpawns[i % kidnapperSpawns.length];
+
+      // Assign enemy type based on index (20% scouts, 20% heavy, 60% normal)
+      const rand = Math.random();
+      const type: 'normal' | 'scout' | 'heavy' =
+        rand < 0.2 ? 'scout' : rand < 0.4 ? 'heavy' : 'normal';
+
+      const baseStats = {
+        normal: { speed: 50, health: 1, viewDist: 300, fireRate: 1500, radius: 20 },
+        scout: { speed: 80, health: 1, viewDist: 350, fireRate: 2000, radius: 18 },
+        heavy: { speed: 30, health: 2, viewDist: 280, fireRate: 1000, radius: 25 }
+      }[type];
+
       const kidnapper: Kidnapper = {
         id: `kidnapper-${i}`,
         position: {
@@ -82,17 +109,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
         velocity: { x: 0, y: 0 },
         rotation: Math.random() * Math.PI * 2,
-        radius: 20,
-        health: 1,
+        radius: baseStats.radius,
+        health: baseStats.health,
         state: 'patrolling',
-        viewDistance: 300 + levelConfig.difficulty * 50,
+        viewDistance: baseStats.viewDist + levelConfig.difficulty * 50,
         viewAngle: Math.PI / 3,
         patrolPoints: levelGenerator.generatePatrolRoute(levelConfig.rooftopLayout),
         currentPatrolIndex: 0,
         alertness: 0,
-        shootCooldown: 1500 - levelConfig.difficulty * 100,
+        shootCooldown: baseStats.fireRate - levelConfig.difficulty * 100,
         lastShotTime: 0,
-        targetPosition: null
+        targetPosition: null,
+        type
       };
       kidnappers.push(kidnapper);
     }
@@ -114,11 +142,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
         kidnappers,
         hostages,
         bullets: [],
+        healthPickups: [...levelConfig.rooftopLayout.healthPickups],
+        particles: [],
         gameStatus: 'playing',
         score: 0,
         killCount: 0,
         totalKills: get().gameState.totalKills,
-        levelConfig
+        levelConfig,
+        killStreak: 0,
+        lastKillTime: 0,
+        scoreMultiplier: 1,
+        cameraShake: 0,
+        showTutorial: levelNumber === 1
       }
     });
   },
@@ -238,6 +273,95 @@ export const useGameStore = create<GameStore>((set, get) => ({
       gameState: {
         ...state.gameState,
         gameStatus: 'menu'
+      }
+    }));
+  },
+
+  addParticles: (particles: Particle[]) => {
+    set((state) => ({
+      gameState: {
+        ...state.gameState,
+        particles: [...state.gameState.particles, ...particles]
+      }
+    }));
+  },
+
+  updateParticles: (particles: Particle[]) => {
+    set((state) => ({
+      gameState: {
+        ...state.gameState,
+        particles
+      }
+    }));
+  },
+
+  updateHealthPickups: (pickups: HealthPickup[]) => {
+    set((state) => ({
+      gameState: {
+        ...state.gameState,
+        healthPickups: pickups
+      }
+    }));
+  },
+
+  collectHealthPickup: (pickupId: string) => {
+    set((state) => ({
+      gameState: {
+        ...state.gameState,
+        healthPickups: state.gameState.healthPickups.map(p =>
+          p.id === pickupId ? { ...p, collected: true } : p
+        )
+      }
+    }));
+  },
+
+  setCameraShake: (amount: number) => {
+    set((state) => ({
+      gameState: {
+        ...state.gameState,
+        cameraShake: amount
+      }
+    }));
+  },
+
+  updateKillStreak: () => {
+    set((state) => {
+      const now = Date.now();
+      const timeSinceLastKill = now - state.gameState.lastKillTime;
+      const streakTimeout = 3000; // 3 seconds
+
+      const newStreak = timeSinceLastKill < streakTimeout
+        ? state.gameState.killStreak + 1
+        : 1;
+
+      const scoreMultiplier = Math.min(4, 1 + Math.floor(newStreak / 3) * 0.5);
+
+      return {
+        gameState: {
+          ...state.gameState,
+          killStreak: newStreak,
+          lastKillTime: now,
+          scoreMultiplier
+        }
+      };
+    });
+  },
+
+  resetKillStreak: () => {
+    set((state) => ({
+      gameState: {
+        ...state.gameState,
+        killStreak: 0,
+        scoreMultiplier: 1
+      }
+    }));
+  },
+
+  dismissTutorial: () => {
+    set((state) => ({
+      gameState: {
+        ...state.gameState,
+        showTutorial: false
       }
     }));
   }
