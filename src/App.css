@@ -1,0 +1,14 @@
+.app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background: var(--bg-dark);
+}
+
+.app.loading {
+  font-size: 24px;
+  color: var(--accent-green);
+}

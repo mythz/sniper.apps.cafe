@@ -1,0 +1,74 @@
+.main-menu {
+  text-align: center;
+  padding: 40px;
+  max-width: 600px;
+}
+
+.game-title {
+  font-size: 48px;
+  margin-bottom: 10px;
+  color: var(--accent-green);
+  text-shadow: 0 0 20px var(--accent-green);
+  letter-spacing: 4px;
+}
+
+.game-subtitle {
+  font-size: 18px;
+  color: var(--text-dim);
+  margin-bottom: 40px;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+.menu-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+}
+
+.stats-display {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: var(--bg-medium);
+  border: 2px solid var(--bg-light);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-label {
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.stat-value {
+  color: var(--accent-green);
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.controls-info {
+  padding: 20px;
+  background: var(--bg-medium);
+  border: 2px solid var(--bg-light);
+}
+
+.controls-info h3 {
+  color: var(--accent-green);
+  margin-bottom: 15px;
+}
+
+.controls-info p {
+  margin: 8px 0;
+  color: var(--text-dim);
+}
