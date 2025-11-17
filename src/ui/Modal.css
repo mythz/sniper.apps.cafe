@@ -1,0 +1,93 @@
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--bg-medium);
+  border: 3px solid var(--accent-green);
+  padding: 40px;
+  min-width: 400px;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(0, 255, 0, 0.3);
+  animation: modalAppear 0.3s ease-out;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-title {
+  font-size: 32px;
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+}
+
+.modal-title.success {
+  color: var(--accent-green);
+  text-shadow: 0 0 20px var(--accent-green);
+}
+
+.modal-title.failure {
+  color: var(--accent-red);
+  text-shadow: 0 0 20px var(--accent-red);
+}
+
+.modal-message {
+  font-size: 18px;
+  color: var(--text-dim);
+  margin-bottom: 30px;
+}
+
+.stats {
+  margin: 30px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: var(--bg-dark);
+  border: 1px solid var(--bg-light);
+}
+
+.stat-item .stat-label {
+  color: var(--text-dim);
+}
+
+.stat-item .stat-value {
+  color: var(--accent-green);
+  font-weight: bold;
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.modal-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+}
